@@ -1,14 +1,12 @@
 Description: Fix FTBFS on sparc64
-Author: Aurelien Jarno <aurel32@debian.org>
+Author: Aurelien Jarno <aurel32@debian.org>, David Mattli <dmm@mattli.us>
 Forwarded: not yet
 Debian-Bug: 714923
-Last-Update: <2015-04-27>
+Last-Update: <2016-02-08>
 
-diff --git a/modules/core/include/opencv2/core/core.hpp b/modules/core/include/opencv2/core/core.hpp
-index 67905ec..6dc8eeb 100644
---- a/modules/core/include/opencv2/core/core.hpp
-+++ b/modules/core/include/opencv2/core/core.hpp
-@@ -1293,7 +1293,7 @@ public:
+--- opencv-2.4.9.1+dfsg.orig/modules/core/include/opencv2/core/core.hpp
++++ opencv-2.4.9.1+dfsg/modules/core/include/opencv2/core/core.hpp
+@@ -1300,7 +1300,7 @@ public:
      operator const _Tp*() const;
  
      _Tp* obj; //< the object pointer.
@@ -16,8 +14,8 @@ index 67905ec..6dc8eeb 100644
 +    _Atomic_word* refcount; //< the associated reference counter
  };
  
- template<typename T>
-@@ -1493,9 +1493,9 @@ class CV_EXPORTS MatAllocator
+ 
+@@ -1468,9 +1468,9 @@ class CV_EXPORTS MatAllocator
  public:
      MatAllocator() {}
      virtual ~MatAllocator() {}
@@ -29,7 +27,7 @@ index 67905ec..6dc8eeb 100644
  };
  
  /*!
-@@ -1988,7 +1988,7 @@ public:
+@@ -1965,7 +1965,7 @@ public:
  
      //! pointer to the reference counter;
      // when matrix points to user-allocated data, the pointer is NULL
@@ -38,7 +36,7 @@ index 67905ec..6dc8eeb 100644
  
      //! helper fields used in locateROI and adjustROI
      uchar* datastart;
-@@ -3411,7 +3411,7 @@ public:
+@@ -3384,7 +3384,7 @@ public:
      {
          Hdr(int _dims, const int* _sizes, int _type);
          void clear();
@@ -47,10 +45,8 @@ index 67905ec..6dc8eeb 100644
          int dims;
          int valueOffset;
          size_t nodeSize;
-diff --git a/modules/core/include/opencv2/core/gpumat.hpp b/modules/core/include/opencv2/core/gpumat.hpp
-index 68647d9..d488c27 100644
---- a/modules/core/include/opencv2/core/gpumat.hpp
-+++ b/modules/core/include/opencv2/core/gpumat.hpp
+--- opencv-2.4.9.1+dfsg.orig/modules/core/include/opencv2/core/gpumat.hpp
++++ opencv-2.4.9.1+dfsg/modules/core/include/opencv2/core/gpumat.hpp
 @@ -301,7 +301,7 @@ namespace cv { namespace gpu
  
          //! pointer to the reference counter;
@@ -60,11 +56,9 @@ index 68647d9..d488c27 100644
  
          //! helper fields used in locateROI and adjustROI
          uchar* datastart;
-diff --git a/modules/core/include/opencv2/core/operations.hpp b/modules/core/include/opencv2/core/operations.hpp
-index 0ae51c6..f18221a 100644
---- a/modules/core/include/opencv2/core/operations.hpp
-+++ b/modules/core/include/opencv2/core/operations.hpp
-@@ -2282,7 +2282,7 @@ public:
+--- opencv-2.4.9.1+dfsg.orig/modules/core/include/opencv2/core/operations.hpp
++++ opencv-2.4.9.1+dfsg/modules/core/include/opencv2/core/operations.hpp
+@@ -2281,7 +2281,7 @@ public:
          Hdr() : data(0), datastart(0), refcount(0), size(0), capacity(0) {};
          _Tp* data;
          _Tp* datastart;
@@ -73,7 +67,7 @@ index 0ae51c6..f18221a 100644
          size_t size;
          size_t capacity;
      };
-@@ -2589,7 +2589,7 @@ template<typename _Tp> inline Ptr<_Tp>::Ptr(_Tp* _obj) : obj(_obj)
+@@ -2588,7 +2588,7 @@ template<typename _Tp> inline Ptr<_Tp>::
  {
      if(obj)
      {
@@ -82,20 +76,18 @@ index 0ae51c6..f18221a 100644
          *refcount = 1;
      }
      else
-@@ -2628,7 +2628,7 @@ template<typename _Tp> inline Ptr<_Tp>& Ptr<_Tp>::operator = (const Ptr<_Tp>& _p
+@@ -2625,7 +2625,7 @@ template<typename _Tp> inline Ptr<_Tp>::
+ 
+ template<typename _Tp> inline Ptr<_Tp>& Ptr<_Tp>::operator = (const Ptr<_Tp>& _ptr)
  {
-     if (this != &_ptr)
-     {
--      int* _refcount = _ptr.refcount;
-+      _Atomic_word* _refcount = _ptr.refcount;
-       if( _refcount )
-           CV_XADD(_refcount, 1);
-       release();
-diff --git a/modules/core/src/gpumat.cpp b/modules/core/src/gpumat.cpp
-index 9669191..0bd2568 100644
---- a/modules/core/src/gpumat.cpp
-+++ b/modules/core/src/gpumat.cpp
-@@ -716,7 +716,7 @@ void cv::gpu::GpuMat::create(int _rows, int _cols, int _type)
+-    int* _refcount = _ptr.refcount;
++    _Atomic_word* _refcount = _ptr.refcount;
+     if( _refcount )
+         CV_XADD(_refcount, 1);
+     release();
+--- opencv-2.4.9.1+dfsg.orig/modules/core/src/gpumat.cpp
++++ opencv-2.4.9.1+dfsg/modules/core/src/gpumat.cpp
+@@ -716,7 +716,7 @@ void cv::gpu::GpuMat::create(int _rows,
          datastart = data = static_cast<uchar*>(devPtr);
          dataend = data + nettosize;
  
@@ -104,11 +96,9 @@ index 9669191..0bd2568 100644
          *refcount = 1;
      }
  }
-diff --git a/modules/core/src/matrix.cpp b/modules/core/src/matrix.cpp
-index 8e32b0f..311d758 100644
---- a/modules/core/src/matrix.cpp
-+++ b/modules/core/src/matrix.cpp
-@@ -213,7 +213,7 @@ void Mat::create(int d, const int* _sizes, int _type)
+--- opencv-2.4.9.1+dfsg.orig/modules/core/src/matrix.cpp
++++ opencv-2.4.9.1+dfsg/modules/core/src/matrix.cpp
+@@ -213,7 +213,7 @@ void Mat::create(int d, const int* _size
          {
              size_t totalsize = alignSize(step.p[0]*size.p[0], (int)sizeof(*refcount));
              data = datastart = (uchar*)fastMalloc(totalsize + (int)sizeof(*refcount));
@@ -117,10 +107,19 @@ index 8e32b0f..311d758 100644
              *refcount = 1;
          }
          else
-diff --git a/modules/gpu/include/opencv2/gpu/gpu.hpp b/modules/gpu/include/opencv2/gpu/gpu.hpp
-index de16982..266fa2f 100644
---- a/modules/gpu/include/opencv2/gpu/gpu.hpp
-+++ b/modules/gpu/include/opencv2/gpu/gpu.hpp
+--- opencv-2.4.9.1+dfsg.orig/modules/core/src/system.cpp
++++ opencv-2.4.9.1+dfsg/modules/core/src/system.cpp
+@@ -903,7 +903,7 @@ struct Mutex::Impl
+     void unlock() { pthread_spin_unlock(&sl); }
+ 
+     pthread_spinlock_t sl;
+-    int refcount;
++    _Atomic_word refcount;
+ };
+ 
+ #else
+--- opencv-2.4.9.1+dfsg.orig/modules/gpu/include/opencv2/gpu/gpu.hpp
++++ opencv-2.4.9.1+dfsg/modules/gpu/include/opencv2/gpu/gpu.hpp
 @@ -125,7 +125,7 @@ public:
      size_t step;
  
@@ -130,11 +129,31 @@ index de16982..266fa2f 100644
  
      uchar* datastart;
      uchar* dataend;
-diff --git a/modules/python/src2/cv2.cpp b/modules/python/src2/cv2.cpp
-index 8a0aa09..0cef61a 100644
---- a/modules/python/src2/cv2.cpp
-+++ b/modules/python/src2/cv2.cpp
-@@ -157,14 +157,14 @@ static PyObject* failmsgp(const char *fmt, ...)
+--- opencv-2.4.9.1+dfsg.orig/modules/ocl/include/opencv2/ocl/ocl.hpp
++++ opencv-2.4.9.1+dfsg/modules/ocl/include/opencv2/ocl/ocl.hpp
+@@ -404,7 +404,7 @@ namespace cv
+ 
+             //! pointer to the reference counter;
+             // when oclMatrix points to user-allocated data, the pointer is NULL
+-            int *refcount;
++            _Atomic_word *refcount;
+ 
+             //! helper fields used in locateROI and adjustROI
+             //datastart and dataend are not used in current version
+--- opencv-2.4.9.1+dfsg.orig/modules/ocl/src/matrix_operations.cpp
++++ opencv-2.4.9.1+dfsg/modules/ocl/src/matrix_operations.cpp
+@@ -591,7 +591,7 @@ void cv::ocl::oclMat::createEx(int _rows
+         datastart = data = (uchar *)dev_ptr;
+         dataend = data + nettosize;
+ 
+-        refcount = (int *)fastMalloc(sizeof(*refcount));
++        refcount = (_Atomic_word *)fastMalloc(sizeof(*refcount));
+         *refcount = 1;
+     }
+ }
+--- opencv-2.4.9.1+dfsg.orig/modules/python/src2/cv2.cpp
++++ opencv-2.4.9.1+dfsg/modules/python/src2/cv2.cpp
+@@ -157,14 +157,14 @@ static PyObject* failmsgp(const char *fm
  static size_t REFCOUNT_OFFSET = (size_t)&(((PyObject*)0)->ob_refcnt) +
      (0x12345678 != *(const size_t*)"\x78\x56\x34\x12\0\0\0\0\0")*sizeof(int);
  
@@ -144,7 +163,8 @@ index 8a0aa09..0cef61a 100644
      return (PyObject*)((size_t)refcount - REFCOUNT_OFFSET);
  }
  
- static inline int* refcountFromPyObject(const PyObject* obj)
+-static inline int* refcountFromPyObject(const PyObject* obj)
++static inline _Atomic_word* refcountFromPyObject(const PyObject* obj)
  {
 -    return (int*)((size_t)obj + REFCOUNT_OFFSET);
 +    return (_Atomic_word*)((size_t)obj + REFCOUNT_OFFSET);
