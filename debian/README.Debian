@@ -21,7 +21,7 @@ necessary when Video function is not necessary.
  - libopencv-highgui*
  - libopencv-contrib*
  - python-opencv
- - and transtion packages.
+ - and transition packages.
 
 Please install the package including a necessary library 
 when you want to make a package using opencv.
