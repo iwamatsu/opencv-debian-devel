@@ -17,7 +17,7 @@ DEB_HOST_ARCH_OS ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 
 # for i386 arch
 ifeq ($(DEB_HOST_ARCH),i386)
-BUILDDIR_ARCH = i586-linux-gnu
+BUILDDIR_ARCH = i686-linux-gnu
 else
 BUILDDIR_ARCH = $(DEB_HOST_MULTIARCH)
 endif
