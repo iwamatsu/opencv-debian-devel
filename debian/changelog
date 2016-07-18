@@ -1,14 +1,53 @@
-opencv (3.1.0+dfsg-1~exp0) UNRELEASED; urgency=medium
+opencv (3.1.0+dfsg-1~exp1) UNRELEASED; urgency=medium
 
   * Update to 3.1.0.
 
  -- Nobuhiro Iwamatsu <iwamatsu@debian.org>  Sat, 25 Jun 2016 06:15:45 +0900
 
+opencv (3.0.0+dfsg-1~exp5) experimental; urgency=medium
+
+  * Fix libvtk6.3 runtime dependency
+
+ -- Gianfranco Costamagna <locutusofborg@debian.org>  Sun, 17 Jul 2016 10:08:15 +0200
+
+opencv (3.0.0+dfsg-1~exp4) experimental; urgency=medium
+
+  * Upload again on experimental, to build against new gdal 2.1.1
+
+ -- Gianfranco Costamagna <locutusofborg@debian.org>  Sat, 16 Jul 2016 10:07:18 +0200
+
+opencv (3.0.0+dfsg-1~exp3) experimental; urgency=medium
+
+  [ Andreas Cadhalpun ]
+  * Fix build with ffmpeg 3.0. (Closes: #803847)
+
+  [ Gianfranco Costamagna ]
+  * Team upload
+  * merge unstable NMUs
+  * rebase ffmpeg patch
+  * Disable optimize i586 patch, now Debian has i686
+
+  [ Tobias Frost ]
+  * Do not use precompiled headers (Closes: #818450)
+
+  [ Mattia Rizzolo ]
+  * Use HTTPS in Vcs-* fields.
+  * Disable opengl when building in armhf (in Ubuntu only)
+  * Don't build with jasper.  Closes: #818207
+    - This causes libopencv-highgui to lose symbols, but we don't rename the
+      package because the breakage is in experimental only.
+  * Fix typo in README.Debian.
+  * Remove unused lintian override python-script-but-no-python-dep.
+
+ -- Gianfranco Costamagna <locutusofborg@debian.org>  Fri, 08 Jul 2016 15:43:15 +0200
+
 opencv (3.0.0+dfsg-1~exp2) experimental; urgency=medium
 
-  * Fix build on i386.
+  * Fix FTBFS on i386.
   * Build with -march=i586 instead of -march=i686 on i386.
     Add debian/patches/optimize_i586.patch.
+  * Fix FTBFS on x32. (Closes: #792264)
+    Add debian/patches/support_x32. Thanks to Thorsten Glaser <tg@mirbsd.de>.
 
  -- Nobuhiro Iwamatsu <iwamatsu@debian.org>  Thu, 07 Jan 2016 23:48:01 +0900
 
@@ -33,6 +72,47 @@ opencv (2.4.11+dfsg-1) unstable; urgency=medium
   * Remove image files of Lena (Closes: #794856)
 
  -- Nobuhiro Iwamatsu <iwamatsu@debian.org>  Wed, 09 Dec 2015 00:36:05 +0900
+
+opencv (2.4.9.1+dfsg-2) unstable; urgency=medium
+
+  * Team upload.
+  * Use HTTPS in Vcs-* fields.
+  * Disable opengl when building in armhf (in Ubuntu only)
+  * Don't build with jasper.  Closes: #818207
+    This causes libopencv-highgui to lose symbols, so we need to rename the
+    package and do a transition.
+  * Fix typo in README.Debian.
+  * Remove unused lintian override python-script-but-no-python-dep.
+  * Add missing dependency on libopencv-gpu2.4v5 to libopencv-gpu-dev.
+    Closes: #825583
+
+ -- Mattia Rizzolo <mattia@debian.org>  Mon, 27 Jun 2016 05:08:42 +0000
+
+opencv (2.4.9.1+dfsg-1.5) unstable; urgency=medium
+
+  * Non-maintainer upload.
+  * Do not use precompiled headers (Closes: #818450)
+
+ -- Tobias Frost <tobi@debian.org>  Thu, 07 Apr 2016 16:43:31 +0200
+
+opencv (2.4.9.1+dfsg-1.4) unstable; urgency=medium
+
+  * Non-maintainer upload.
+
+  [ Andreas Cadhalpun ]
+  * Fix build with ffmpeg 3.0. (Closes: #803847)
+
+ -- Sebastian Ramacher <sramacher@debian.org>  Sun, 06 Mar 2016 23:57:30 +0100
+
+opencv (2.4.9.1+dfsg-1.3) UNRELEASED; urgency=medium
+
+  * Non-maintainer upload.
+  * Refresh debian/patches:
+    - Update change_type_from_int_to_Atomic_word to fix
+      FTBFS on sparc64. (Closes: #714923)
+    - Re-add fix_without_sysctl.patch to fix FTBFS on x32. (Closes: #792264)
+
+ -- John Paul Adrian Glaubitz <glaubitz@physik.fu-berlin.de>  Mon, 08 Feb 2016 10:51:45 +0100
 
 opencv (2.4.9.1+dfsg-1.2) unstable; urgency=medium
 
