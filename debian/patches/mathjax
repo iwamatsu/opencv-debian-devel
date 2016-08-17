@@ -1,0 +1,13 @@
+diff --git a/doc/Doxyfile.in b/doc/Doxyfile.in
+index c4da726..47733cd 100644
+--- a/doc/Doxyfile.in
++++ b/doc/Doxyfile.in
+@@ -167,7 +167,7 @@ FORMULA_FONTSIZE       = 14
+ FORMULA_TRANSPARENT    = YES
+ USE_MATHJAX            = YES
+ MATHJAX_FORMAT         = HTML-CSS
+-MATHJAX_RELPATH        = http://cdn.mathjax.org/mathjax/latest
++MATHJAX_RELPATH        = /usr/share/javascript/mathjax/
+ MATHJAX_EXTENSIONS     = TeX/AMSmath TeX/AMSsymbols
+ MATHJAX_CODEFILE       = @CMAKE_CURRENT_SOURCE_DIR@/mymath.js
+ SEARCHENGINE           = YES
