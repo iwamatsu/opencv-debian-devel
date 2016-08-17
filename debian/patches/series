@@ -9,3 +9,4 @@ support_multiarch
 #libav10.patch
 support_x32
 mathjax
+disable_opengl_test_build

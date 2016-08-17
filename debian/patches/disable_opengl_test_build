@@ -1,0 +1,14 @@
+diff --git a/samples/gpu/CMakeLists.txt b/samples/gpu/CMakeLists.txt
+index 6085cac..7d3622e 100644
+--- a/samples/gpu/CMakeLists.txt
++++ b/samples/gpu/CMakeLists.txt
+@@ -96,9 +96,6 @@ endif()
+
+ if(INSTALL_C_EXAMPLES AND NOT WIN32)
+   file(GLOB install_list *.c *.cpp *.jpg *.png *.data makefile.* build_all.sh *.dsp *.cmd )
+-  if(NOT WITH_OPENGL)
+-    list(REMOVE_ITEM all_samples "opengl.cpp")
+-  endif(NOT WITH_OPENGL)
+   install(FILES ${install_list}
+           DESTINATION ${OPENCV_SAMPLES_SRC_INSTALL_PATH}/gpu
+           PERMISSIONS OWNER_READ GROUP_READ WORLD_READ COMPONENT samples)
