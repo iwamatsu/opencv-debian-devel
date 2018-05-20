@@ -9,20 +9,16 @@ Signed-off-by: Nobuhiro Iwamatsu <iwamatsu@nigauri.org>
  1 file changed, 4 deletions(-)
 
 diff --git a/samples/gpu/CMakeLists.txt b/samples/gpu/CMakeLists.txt
-index 0f734677be..505dc9b4e9 100644
+index 8b35e7c37..0ba0c7108 100644
 --- a/samples/gpu/CMakeLists.txt
 +++ b/samples/gpu/CMakeLists.txt
-@@ -73,10 +73,6 @@ if(BUILD_EXAMPLES AND OCV_DEPENDENCIES_FOUND)
- 
-   file(GLOB all_samples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
- 
--  if(NOT HAVE_OPENGL)
--    list(REMOVE_ITEM all_samples "opengl.cpp")
--  endif()
--
-   foreach(sample_filename ${all_samples})
-     get_filename_component(sample ${sample_filename} NAME_WE)
-     file(GLOB sample_srcs RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} ${sample}.*)
--- 
-2.14.1
-
+@@ -44,9 +44,6 @@ if(CMAKE_COMPILER_IS_GNUCXX AND NOT ENABLE_NOISY_WARNINGS)
+   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-function")
+ endif()
+ file(GLOB all_samples RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} *.cpp)
+-if(NOT HAVE_OPENGL)
+-  ocv_list_filterout(all_samples "opengl")
+-endif()
+ foreach(sample_filename ${all_samples})
+   ocv_define_sample(tgt ${sample_filename} gpu)
+   ocv_target_link_libraries(${tgt} ${OPENCV_LINKER_LIBS} ${OPENCV_CUDA_SAMPLES_REQUIRED_DEPS})
