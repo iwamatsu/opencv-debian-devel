@@ -38,6 +38,7 @@ Build-Depends:
  libtiff-dev,
  libv4l-dev [linux-any],
  libvtk6-dev,
+ libvtkgdcm2-dev,
  maven-repo-helper,
  ocl-icd-opencl-dev,
  protobuf-compiler,
