@@ -1,3 +1,4 @@
-change_jquery.js_path
-disable_dnn_modern
-fix_java_build.patch
+disable_opengl_test_build
+#change_jquery.js_path
+#disable_dnn_modern
+#fix_java_build.patch
