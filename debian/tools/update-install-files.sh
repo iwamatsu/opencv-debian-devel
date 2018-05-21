@@ -9,7 +9,7 @@ DEB_PKGS_LIST="libopencv-calib3d@V.install libopencv-contrib@V.install libopencv
 	libopencv-videoio@V.install libopencv-videostab@V.install libopencv-viz@V.install 
 	libopencv@V-java.install libopencv@V-jni.install
 	libopencv-contrib@V.lintian-overrides libopencv@V-jni.lintian-overrides
-	libopencv@V-java.links"
+	libopencv@V-java.links libopencv@v-java.poms"
 # opencv-data opencv-doc.install python-opencv.install python3-opencv.install
 
 cd debian
