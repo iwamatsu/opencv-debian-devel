@@ -39,6 +39,7 @@ Build-Depends:
  libv4l-dev [linux-any],
  libvtk6-dev,
  libvtkgdcm2-dev,
+ libgdcm-tools,
  maven-repo-helper,
  ocl-icd-opencl-dev,
  protobuf-compiler,
