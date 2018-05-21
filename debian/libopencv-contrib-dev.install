@@ -135,4 +135,8 @@ usr/include/opencv2/tracking/*
 usr/include/opencv2/tracking.hpp
 usr/lib/*/libopencv_tracking.a
 usr/lib/*/libopencv_tracking.so
-
+# text
+usr/include/opencv2/text/*
+usr/include/opencv2/text.hpp
+usr/lib/*/libopencv_text.a
+usr/lib/*/libopencv_text.so
