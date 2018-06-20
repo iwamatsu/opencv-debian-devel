@@ -106,13 +106,13 @@ configure_dyn:
 		-- $(CMAKE_FLAGS) \
 		-DCMAKE_SHARED_LINKER_FLAGS_RELEASE="$(LDFLAGS)" \
 		-DBUILD_SHARED_LIBS=ON -DBUILD_DOCS=ON \
-		-DBUILD_opencv_python2=ON \
+		-DBUILD_opencv_python2=OFF \
 		-DBUILD_opencv_python3=ON
 configure_static:
 	dh_auto_configure -B $(BUILDDIR)-static \
 		-- $(CMAKE_FLAGS) \
 		-DBUILD_SHARED_LIBS=OFF -DBUILD_DOCS=OFF \
-		-DBUILD_opencv_python2=ON \
+		-DBUILD_opencv_python2=OFF \
 		-DBUILD_opencv_python3=ON
 
 
