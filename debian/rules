@@ -78,6 +78,7 @@ CMAKE_FLAGS = \
 	-DWITH_CAROTENE=OFF \
 	-DBUILD_opencv_dnn=OFF \
 	-DBUILD_opencv_dnn_modern=OFF \
+	-DBUILD_opencv_python2=OFF \
 	-DOPENCL_INCLUDE_DIR:PATH="/usr/include/CL/" \
 	-DOPENCV_EXTRA_MODULES_PATH="$(CURDIR)/contrib/modules" \
 	$(CMAKE_ARCH_FLAGS)
