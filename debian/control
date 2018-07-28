@@ -1063,23 +1063,30 @@ Description: computer vision contrlib library
    - bgsegm
    - bioinspired
    - ccalib
-   - dnn
+   - cnn_3dobj
+   - cvv
+   - datasets
    - dpm
+   - face
+   - freetype
    - fuzzy
    - hdf
+   - hfs
+   - img_hash
    - line_descriptor
+   - matlab
    - optflow
+   - ovis
+   - phase_unwrapping
    - plot
    - reg
+   - rgbd
    - saliency
+   - sfm
    - stereo
    - structured_light
-   - rgbd
    - surface_matching
    - tracking
-   - datasets
-   - text
-   - face
    - ximgproc
    - xobjdetect
    - xphoto
