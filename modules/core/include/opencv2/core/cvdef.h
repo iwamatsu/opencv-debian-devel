@@ -453,10 +453,34 @@ Cv64suf;
 #endif
 
 
+/****************************************************************************************\
+*                                 C++11 override / final                                 *
+\****************************************************************************************/
+
+#ifndef CV_OVERRIDE
+#  ifdef CV_CXX11
+#    define CV_OVERRIDE override
+#  endif
+#endif
+#ifndef CV_OVERRIDE
+#  define CV_OVERRIDE
+#endif
+
+#ifndef CV_FINAL
+#  ifdef CV_CXX11
+#    define CV_FINAL final
+#  endif
+#endif
+#ifndef CV_FINAL
+#  define CV_FINAL
+#endif
+
+
+
 // Integer types portatibility
 #ifdef OPENCV_STDINT_HEADER
 #include OPENCV_STDINT_HEADER
-#else
+#elif defined(__cplusplus)
 #if defined(_MSC_VER) && _MSC_VER < 1600 /* MSVS 2010 */
 namespace cv {
 typedef signed char int8_t;
@@ -493,9 +517,15 @@ typedef ::int64_t int64_t;
 typedef ::uint64_t uint64_t;
 }
 #endif
+#else // pure C
+#include <stdint.h>
 #endif
 
 
 //! @}
+
+#ifndef __cplusplus
+#include "opencv2/core/fast_math.hpp" // define cvRound(double)
+#endif
 
 #endif // OPENCV_CORE_CVDEF_H

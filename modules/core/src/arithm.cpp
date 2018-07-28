@@ -1233,6 +1233,12 @@ void cv::compare(InputArray _src1, InputArray _src2, OutputArray _dst, int op)
     CV_Assert( op == CMP_LT || op == CMP_LE || op == CMP_EQ ||
                op == CMP_NE || op == CMP_GE || op == CMP_GT );
 
+    if(_src1.empty() && _src2.empty())
+    {
+        _dst.release();
+        return;
+    }
+
     bool haveScalar = false;
 
     if ((_src1.isMatx() + _src2.isMatx()) == 1
@@ -1751,6 +1757,8 @@ void cv::inRange(InputArray _src, InputArray _lowerb,
                  InputArray _upperb, OutputArray _dst)
 {
     CV_INSTRUMENT_REGION()
+
+    CV_Assert(! _src.empty());
 
     CV_OCL_RUN(_src.dims() <= 2 && _lowerb.dims() <= 2 &&
                _upperb.dims() <= 2 && OCL_PERFORMANCE_CHECK(_dst.isUMat()),

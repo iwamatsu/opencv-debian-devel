@@ -15,6 +15,10 @@ macro(ie_fail)
     return()
 endmacro()
 
+if(NOT HAVE_CXX11)
+    ie_fail()
+endif()
+
 if(NOT INF_ENGINE_ROOT_DIR OR NOT EXISTS "${INF_ENGINE_ROOT_DIR}/include/inference_engine.hpp")
     set(ie_root_paths "${INF_ENGINE_ROOT_DIR}")
     if(DEFINED ENV{INTEL_CVSDK_DIR})
@@ -26,7 +30,7 @@ if(NOT INF_ENGINE_ROOT_DIR OR NOT EXISTS "${INF_ENGINE_ROOT_DIR}/include/inferen
         list(APPEND ie_root_paths "${INTEL_CVSDK_DIR}/inference_engine")
     endif()
 
-    if(WITH_INF_ENGINE AND NOT ie_root_paths)
+    if(NOT ie_root_paths)
         list(APPEND ie_root_paths "/opt/intel/deeplearning_deploymenttoolkit/deployment_tools/inference_engine")
     endif()
 
@@ -37,8 +41,7 @@ set(INF_ENGINE_INCLUDE_DIRS "${INF_ENGINE_ROOT_DIR}/include" CACHE PATH "Path to
 
 if(NOT INF_ENGINE_ROOT_DIR
     OR NOT EXISTS "${INF_ENGINE_ROOT_DIR}"
-    OR NOT EXISTS "${INF_ENGINE_INCLUDE_DIRS}"
-    OR NOT EXISTS "${INF_ENGINE_INCLUDE_DIRS}/inference_engine.hpp"
+    OR NOT EXISTS "${INF_ENGINE_ROOT_DIR}/include/inference_engine.hpp"
 )
     ie_fail()
 endif()
@@ -46,9 +49,11 @@ endif()
 set(INF_ENGINE_LIBRARIES "")
 
 set(ie_lib_list inference_engine)
-if(UNIX)
-    list(APPEND ie_lib_list mklml_intel iomp5)
-endif()
+
+link_directories(
+  ${INTEL_CVSDK_DIR}/inference_engine/external/mkltiny_lnx/lib
+  ${INTEL_CVSDK_DIR}/inference_engine/external/cldnn/lib
+)
 
 foreach(lib ${ie_lib_list})
     find_library(${lib}
@@ -56,9 +61,6 @@ foreach(lib ${ie_lib_list})
         # For inference_engine
         HINTS ${IE_PLUGINS_PATH}
         HINTS "$ENV{IE_PLUGINS_PATH}"
-        # For mklml_intel, iomp5
-        HINTS ${INTEL_CVSDK_DIR}/external/mklml_lnx/lib
-        HINTS ${INTEL_CVSDK_DIR}/inference_engine/external/mklml_lnx/lib
     )
     if(NOT ${lib})
         ie_fail()
@@ -67,7 +69,3 @@ foreach(lib ${ie_lib_list})
 endforeach()
 
 set(HAVE_INF_ENGINE TRUE)
-
-include_directories(${INF_ENGINE_INCLUDE_DIRS})
-list(APPEND OPENCV_LINKER_LIBS ${INF_ENGINE_LIBRARIES})
-add_definitions(-DHAVE_INF_ENGINE)

@@ -26,6 +26,7 @@ static void test(LayerParams& params, Mat& input)
     net.connect(0, 0, lid, 0);
 
     net.setInput(input);
+    net.setPreferableBackend(DNN_BACKEND_OPENCV);
     Mat outputDefault = net.forward(params.name).clone();
 
     net.setPreferableBackend(DNN_BACKEND_HALIDE);
@@ -40,17 +41,18 @@ TEST(Padding_Halide, Accuracy)
 {
     static const int kNumRuns = 10;
     std::vector<int> paddings(8);
+    cv::RNG& rng = cv::theRNG();
     for (int t = 0; t < kNumRuns; ++t)
     {
         for (int i = 0; i < paddings.size(); ++i)
-            paddings[i] = rand() % 5;
+            paddings[i] = rng(5);
 
         LayerParams lp;
         lp.set("paddings", DictValue::arrayInt<int*>(&paddings[0], paddings.size()));
         lp.type = "Padding";
         lp.name = "testLayer";
 
-        Mat input({1 + rand() % 10, 1 + rand() % 10, 1 + rand() % 10, 1 + rand() % 10}, CV_32F);
+        Mat input({1 + rng(10), 1 + rng(10), 1 + rng(10), 1 + rng(10)}, CV_32F);
         test(lp, input);
     }
 }
@@ -367,6 +369,7 @@ TEST(MaxPoolUnpool_Halide, Accuracy)
     Mat input({1, 1, 4, 4}, CV_32F);
     randu(input, -1.0f, 1.0f);
     net.setInput(input);
+    net.setPreferableBackend(DNN_BACKEND_OPENCV);
     Mat outputDefault = net.forward("testUnpool").clone();
 
     net.setPreferableBackend(DNN_BACKEND_HALIDE);
@@ -400,6 +403,7 @@ void testInPlaceActivation(LayerParams& lp)
     Mat input({1, kNumChannels, 10, 10}, CV_32F);
     randu(input, -1.0f, 1.0f);
     net.setInput(input);
+    net.setPreferableBackend(DNN_BACKEND_OPENCV);
     Mat outputDefault = net.forward(lp.name).clone();
 
     net.setInput(input);
@@ -578,6 +582,7 @@ TEST_P(Concat, Accuracy)
     randu(input, -1.0f, 1.0f);
 
     net.setInput(input);
+    net.setPreferableBackend(DNN_BACKEND_OPENCV);
     Mat outputDefault = net.forward(concatParam.name).clone();
 
     net.setPreferableBackend(DNN_BACKEND_HALIDE);
@@ -633,7 +638,7 @@ TEST_P(Eltwise, Accuracy)
     eltwiseParam.set("operation", op);
     if (op == "sum" && weighted)
     {
-        RNG rng = cv::theRNG();
+        RNG& rng = cv::theRNG();
         std::vector<float> coeff(1 + numConv);
         for (int i = 0; i < coeff.size(); ++i)
         {
@@ -654,6 +659,7 @@ TEST_P(Eltwise, Accuracy)
     randu(input, -1.0f, 1.0f);
 
     net.setInput(input);
+    net.setPreferableBackend(DNN_BACKEND_OPENCV);
     Mat outputDefault = net.forward(eltwiseParam.name).clone();
 
     net.setPreferableBackend(DNN_BACKEND_HALIDE);
@@ -697,6 +703,7 @@ TEST(MixedBackends_Halide_Default_Halide, Accuracy)
     Mat input({4, 3, 5, 6}, CV_32F);
     randu(input, -1.0f, 1.0f);
     net.setInput(input);
+    net.setPreferableBackend(DNN_BACKEND_OPENCV);
     Mat outputDefault = net.forward().clone();
 
     net.setPreferableBackend(DNN_BACKEND_HALIDE);
