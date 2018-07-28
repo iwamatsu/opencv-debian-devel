@@ -194,7 +194,7 @@ void CharucoBoard::_getNearestMarkerCorners() {
             double sqDistance;
             Point3f distVector = charucoCorner - center;
             sqDistance = distVector.x * distVector.x + distVector.y * distVector.y;
-            if(j == 0 || fabs(sqDistance - minDist) < 0.0001) {
+            if(j == 0 || fabs(sqDistance - minDist) < cv::pow(0.01 * _squareLength, 2)) {
                 // if same minimum distance (or first iteration), add to nearestMarkerIdx vector
                 nearestMarkerIdx[i].push_back(j);
                 minDist = sqDistance;
@@ -282,7 +282,7 @@ class CharucoSubpixelParallel : public ParallelLoopBody {
         : grey(_grey), filteredChessboardImgPoints(_filteredChessboardImgPoints),
           filteredWinSizes(_filteredWinSizes), params(_params) {}
 
-    void operator()(const Range &range) const {
+    void operator()(const Range &range) const CV_OVERRIDE {
         const int begin = range.start;
         const int end = range.end;
 
@@ -738,7 +738,7 @@ void detectCharucoDiamond(InputArray _image, InputArrayOfArrays _markerCorners,
 
     CV_Assert(_markerIds.total() > 0 && _markerIds.total() == _markerCorners.total());
 
-    const float minRepDistanceRate = 0.12f;
+    const float minRepDistanceRate = 1.302455f;
 
     // create Charuco board layout for diamond (3x3 layout)
     Ptr<Dictionary> dict = getPredefinedDictionary(PREDEFINED_DICTIONARY_NAME(0));
@@ -771,7 +771,7 @@ void detectCharucoDiamond(InputArray _image, InputArrayOfArrays _markerCorners,
           perimeterSq += edge.x*edge.x + edge.y*edge.y;
         }
         // maximum reprojection error relative to perimeter
-        float minRepDistance = perimeterSq * minRepDistanceRate * minRepDistanceRate;
+        float minRepDistance = sqrt(perimeterSq) * minRepDistanceRate;
 
         int currentId = _markerIds.getMat().at< int >(i);
 

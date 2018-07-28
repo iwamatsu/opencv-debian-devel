@@ -42,6 +42,7 @@
 
 #include "precomp.hpp"
 
+#include <opencv2/core/utils/configuration.private.hpp>
 #include <opencv2/core/utils/trace.private.hpp>
 
 #if defined _WIN32 || defined WINCE
@@ -52,7 +53,8 @@
     #undef abs
 #endif
 
-#if defined __linux__ || defined __APPLE__
+#if defined __linux__ || defined __APPLE__ || defined __GLIBC__ \
+    || defined __HAIKU__
     #include <unistd.h>
     #include <stdio.h>
     #include <sys/types.h>
@@ -125,16 +127,36 @@
 #  define CV_PARALLEL_FRAMEWORK "pthreads"
 #endif
 
+#include "parallel_impl.hpp"
+
+
+#ifndef CV__EXCEPTION_PTR
+#  if defined(__ANDROID__) && defined(ATOMIC_INT_LOCK_FREE) && ATOMIC_INT_LOCK_FREE < 2
+#    define CV__EXCEPTION_PTR 0  // Not supported, details: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=58938
+#  elif defined(CV_CXX11)
+#    define CV__EXCEPTION_PTR 1
+#  elif defined(_MSC_VER)
+#    define CV__EXCEPTION_PTR (_MSC_VER >= 1600)
+#  elif defined(__clang__)
+#    define CV__EXCEPTION_PTR 0  // C++11 only (see above)
+#  elif defined(__GNUC__) && defined(__GXX_EXPERIMENTAL_CXX0X__)
+#    define CV__EXCEPTION_PTR (__GXX_EXPERIMENTAL_CXX0X__ > 0)
+#  endif
+#endif
+#ifndef CV__EXCEPTION_PTR
+#  define CV__EXCEPTION_PTR 0
+#elif CV__EXCEPTION_PTR
+#  include <exception>  // std::exception_ptr
+#endif
+
+
+
+using namespace cv;
+
 namespace cv
 {
     ParallelLoopBody::~ParallelLoopBody() {}
-#ifdef HAVE_PTHREADS_PF
-    void parallel_for_pthreads(const cv::Range& range, const cv::ParallelLoopBody& body, double nstripes);
-    size_t parallel_pthreads_get_threads_num();
-    void parallel_pthreads_set_threads_num(int num);
-#endif
 }
-
 
 namespace
 {
@@ -169,7 +191,7 @@ namespace
     {
     public:
         ParallelLoopBodyWrapperContext(const cv::ParallelLoopBody& _body, const cv::Range& _r, double _nstripes) :
-            is_rng_used(false)
+            is_rng_used(false), hasException(false)
         {
 
             body = &_body;
@@ -189,7 +211,7 @@ namespace
             pThreadRoot = cv::instr::getInstrumentTLSStruct().pCurrentNode;
 #endif
         }
-        ~ParallelLoopBodyWrapperContext()
+        void finalize()
         {
 #ifdef ENABLE_INSTRUMENTATION
             for(size_t i = 0; i < pThreadRoot->m_childs.size(); i++)
@@ -209,7 +231,17 @@ namespace
             if (traceRootRegion)
                 CV_TRACE_NS::details::parallelForFinalize(*traceRootRegion);
 #endif
+
+            if (hasException)
+            {
+#if CV__EXCEPTION_PTR
+                std::rethrow_exception(pException);
+#else
+                CV_Error(Error::StsError, "Exception in parallel_for() body: " + exception_message);
+#endif
+            }
         }
+        ~ParallelLoopBodyWrapperContext() {}
 
         const cv::ParallelLoopBody* body;
         cv::Range wholeRange;
@@ -223,6 +255,32 @@ namespace
 #ifdef ENABLE_INSTRUMENTATION
         cv::instr::InstrNode *pThreadRoot;
 #endif
+        bool hasException;
+#if CV__EXCEPTION_PTR
+        std::exception_ptr pException;
+#else
+        cv::String exception_message;
+#endif
+#if CV__EXCEPTION_PTR
+        void recordException()
+#else
+        void recordException(const cv::String& msg)
+#endif
+        {
+            if (!hasException)
+            {
+                cv::AutoLock lock(cv::getInitializationMutex());
+                if (!hasException)
+                {
+                    hasException = true;
+#if CV__EXCEPTION_PTR
+                    pException = std::current_exception();
+#else
+                    exception_message = msg;
+#endif
+                }
+            }
+        }
     private:
         ParallelLoopBodyWrapperContext(const ParallelLoopBodyWrapperContext&); // disabled
         ParallelLoopBodyWrapperContext& operator=(const ParallelLoopBodyWrapperContext&); // disabled
@@ -238,7 +296,7 @@ namespace
         ~ParallelLoopBodyWrapper()
         {
         }
-        void operator()(const cv::Range& sr) const
+        void operator()(const cv::Range& sr) const CV_OVERRIDE
         {
 #ifdef OPENCV_TRACE
             // TODO CV_TRACE_NS::details::setCurrentRegion(rootRegion);
@@ -273,7 +331,29 @@ namespace
             CV_TRACE_ARG_VALUE(range_end, "range.end", (int64)r.end);
 #endif
 
-            (*ctx.body)(r);
+            try
+            {
+                (*ctx.body)(r);
+            }
+#if CV__EXCEPTION_PTR
+            catch (...)
+            {
+                ctx.recordException();
+            }
+#else
+            catch (const cv::Exception& e)
+            {
+                ctx.recordException(e.what());
+            }
+            catch (const std::exception& e)
+            {
+                ctx.recordException(e.what());
+            }
+            catch (...)
+            {
+                ctx.recordException("Unknown exception");
+            }
+#endif
 
             if (!ctx.is_rng_used && !(cv::theRNG() == ctx.rng))
                 ctx.is_rng_used = true;
@@ -295,6 +375,12 @@ namespace
         void operator ()(const tbb::blocked_range<int>& range) const
         {
             this->ParallelLoopBodyWrapper::operator()(cv::Range(range.begin(), range.end()));
+        }
+
+        void operator ()() const  // run parallel job
+        {
+            cv::Range range = this->stripeRange();
+            tbb::parallel_for(tbb::blocked_range<int>(range.start, range.end), *this);
         }
     };
 #elif defined HAVE_CSTRIPES || defined HAVE_OPENMP
@@ -326,7 +412,11 @@ namespace
 static int numThreads = -1;
 
 #if defined HAVE_TBB
-static tbb::task_scheduler_init tbbScheduler(tbb::task_scheduler_init::deferred);
+    #if TBB_INTERFACE_VERSION >= 8000
+        static tbb::task_arena tbbArena(tbb::task_arena::automatic);
+    #else
+        static tbb::task_scheduler_init tbbScheduler(tbb::task_scheduler_init::deferred);
+    #endif
 #elif defined HAVE_CSTRIPES
 // nothing for C=
 #elif defined HAVE_OPENMP
@@ -363,6 +453,10 @@ static SchedPtr pplScheduler;
 
 /* ================================   parallel_for_  ================================ */
 
+#ifdef CV_PARALLEL_FRAMEWORK
+static void parallel_for_impl(const cv::Range& range, const cv::ParallelLoopBody& body, double nstripes); // forward declaration
+#endif
+
 void cv::parallel_for_(const cv::Range& range, const cv::ParallelLoopBody& body, double nstripes)
 {
 #ifdef OPENCV_TRACE
@@ -377,10 +471,35 @@ void cv::parallel_for_(const cv::Range& range, const cv::ParallelLoopBody& body,
         return;
 
 #ifdef CV_PARALLEL_FRAMEWORK
+    static volatile int flagNestedParallelFor = 0;
+    bool isNotNestedRegion = flagNestedParallelFor == 0;
+    if (isNotNestedRegion)
+      isNotNestedRegion = CV_XADD(&flagNestedParallelFor, 1) == 0;
+    if (isNotNestedRegion)
+    {
+        try
+        {
+            parallel_for_impl(range, body, nstripes);
+            flagNestedParallelFor = 0;
+        }
+        catch (...)
+        {
+            flagNestedParallelFor = 0;
+            throw;
+        }
+    }
+    else // nested parallel_for_() calls are not parallelized
+#endif // CV_PARALLEL_FRAMEWORK
+    {
+        (void)nstripes;
+        body(range);
+    }
+}
 
-    static int flagNestedParallelFor = 0;
-    bool isNotNesterParallelFor = CV_XADD(&flagNestedParallelFor, 1) == 0;
-    if(numThreads != 0 && isNotNesterParallelFor)
+#ifdef CV_PARALLEL_FRAMEWORK
+static void parallel_for_impl(const cv::Range& range, const cv::ParallelLoopBody& body, double nstripes)
+{
+    if ((numThreads < 0 || numThreads > 1) && range.end - range.start > 1)
     {
         ParallelLoopBodyWrapperContext ctx(body, range, nstripes);
         ProxyLoopBody pbody(ctx);
@@ -388,13 +507,16 @@ void cv::parallel_for_(const cv::Range& range, const cv::ParallelLoopBody& body,
         if( stripeRange.end - stripeRange.start == 1 )
         {
             body(range);
-            flagNestedParallelFor = 0;
             return;
         }
 
 #if defined HAVE_TBB
 
-        tbb::parallel_for(tbb::blocked_range<int>(stripeRange.start, stripeRange.end), pbody);
+#if TBB_INTERFACE_VERSION >= 8000
+        tbbArena.execute(pbody);
+#else
+        pbody();
+#endif
 
 #elif defined HAVE_CSTRIPES
 
@@ -444,16 +566,16 @@ void cv::parallel_for_(const cv::Range& range, const cv::ParallelLoopBody& body,
 #error You have hacked and compiling with unsupported parallel framework
 
 #endif
-        flagNestedParallelFor = 0;
+
+        ctx.finalize();  // propagate exceptions if exists
     }
     else
-
-#endif // CV_PARALLEL_FRAMEWORK
     {
-        (void)nstripes;
         body(range);
     }
 }
+#endif // CV_PARALLEL_FRAMEWORK
+
 
 int cv::getNumThreads(void)
 {
@@ -466,9 +588,17 @@ int cv::getNumThreads(void)
 
 #if defined HAVE_TBB
 
+#if TBB_INTERFACE_VERSION >= 9100
+    return tbbArena.max_concurrency();
+#elif TBB_INTERFACE_VERSION >= 8000
+    return numThreads > 0
+        ? numThreads
+        : tbb::task_scheduler_init::default_num_threads();
+#else
     return tbbScheduler.is_active()
            ? numThreads
            : tbb::task_scheduler_init::default_num_threads();
+#endif
 
 #elif defined HAVE_CSTRIPES
 
@@ -508,17 +638,47 @@ int cv::getNumThreads(void)
 #endif
 }
 
-void cv::setNumThreads( int threads )
+namespace cv {
+unsigned defaultNumberOfThreads()
 {
-    (void)threads;
+#ifdef __ANDROID__
+    // many modern phones/tables have 4-core CPUs. Let's use no more
+    // than 2 threads by default not to overheat the devices
+    const unsigned int default_number_of_threads = 2;
+#else
+    const unsigned int default_number_of_threads = (unsigned int)std::max(1, cv::getNumberOfCPUs());
+#endif
+
+    unsigned result = default_number_of_threads;
+
+    static int config_num_threads = (int)utils::getConfigurationParameterSizeT("OPENCV_FOR_THREADS_NUM", 0);
+
+    if (config_num_threads)
+    {
+        result = (unsigned)std::max(1, config_num_threads);
+        //do we need upper limit of threads number?
+    }
+    return result;
+}
+}
+
+void cv::setNumThreads( int threads_ )
+{
+    (void)threads_;
 #ifdef CV_PARALLEL_FRAMEWORK
+    int threads = (threads_ < 0) ? defaultNumberOfThreads() : (unsigned)threads_;
     numThreads = threads;
 #endif
 
 #ifdef HAVE_TBB
 
+#if TBB_INTERFACE_VERSION >= 8000
+    if(tbbArena.is_active()) tbbArena.terminate();
+    if(threads > 0) tbbArena.initialize(threads);
+#else
     if(tbbScheduler.is_active()) tbbScheduler.terminate();
     if(threads > 0) tbbScheduler.initialize(threads);
+#endif
 
 #elif defined HAVE_CSTRIPES
 
@@ -644,7 +804,7 @@ int cv::getNumberOfCPUs(void)
 #elif defined __ANDROID__
     static int ncpus = getNumberOfCPUsImpl();
     return ncpus;
-#elif defined __linux__
+#elif defined __linux__ || defined __GLIBC__ || defined __HAIKU__
     return (int)sysconf( _SC_NPROCESSORS_ONLN );
 #elif defined __APPLE__
     int numCPU=0;

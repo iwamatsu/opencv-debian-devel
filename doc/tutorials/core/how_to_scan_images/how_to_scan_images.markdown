@@ -51,7 +51,7 @@ three major ways of going through an image pixel by pixel. To make things a litt
 will make the scanning for each image using all of these methods, and print out how long it took.
 
 You can download the full source code [here
-](https://github.com/opencv/opencv/tree/master/samples/cpp/tutorial_code/core/how_to_scan_images/how_to_scan_images.cpp) or look it up in
+](https://github.com/opencv/opencv/tree/3.4/samples/cpp/tutorial_code/core/how_to_scan_images/how_to_scan_images.cpp) or look it up in
 the samples directory of OpenCV at the cpp tutorial code for the core section. Its basic usage is:
 @code{.bash}
 how_to_scan_images imageName.jpg intValueToReduce [G]
@@ -214,8 +214,4 @@ the safety trait of iterators.
 
 Finally, you may watch a sample run of the program on the [video posted](https://www.youtube.com/watch?v=fB3AN5fjgwc) on our YouTube channel.
 
-\htmlonly
-<div align="center">
-<iframe title="How to scan images in OpenCV?" width="560" height="349" src="http://www.youtube.com/embed/fB3AN5fjgwc?rel=0&loop=1" frameborder="0" allowfullscreen align="middle"></iframe>
-</div>
-\endhtmlonly
+@youtube{fB3AN5fjgwc}

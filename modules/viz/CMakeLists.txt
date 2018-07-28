@@ -1,4 +1,4 @@
-if(NOT WITH_VTK OR NOT DEFINED HAVE_VTK OR NOT HAVE_VTK)
+if(NOT HAVE_VTK)
   ocv_module_disable(viz)
 endif()
 
@@ -19,16 +19,18 @@ if(NOT BUILD_SHARED_LIBS)
     endif()
   endforeach()
   if(_conflicts)
-    message(STATUS "Disabling VIZ module due conflicts with VTK dependencies: ${_conflicts}")
+    message(STATUS "Disabling VIZ module due to conflicts with VTK dependencies: ${_conflicts}")
     ocv_module_disable(viz)
   endif()
 endif()
 
+ocv_warnings_disable(CMAKE_CXX_FLAGS -Winconsistent-missing-override -Wsuggest-override)
+
 ocv_define_module(viz opencv_core WRAP python)
-ocv_target_link_libraries(${the_module} ${VTK_LIBRARIES})
+ocv_target_link_libraries(${the_module} LINK_PRIVATE ${VTK_LIBRARIES})
 
 if(APPLE AND BUILD_opencv_viz)
-  ocv_target_link_libraries(${the_module} "-framework Cocoa")
+  ocv_target_link_libraries(${the_module} LINK_PRIVATE "-framework Cocoa")
 endif()
 
 if(TARGET opencv_test_viz)
