@@ -1,12 +1,16 @@
-opencv (3.3.0+dfsg-1~exp1) UNRELEASED; urgency=medium
+opencv (3.4.2+dfsg-1~exp1) UNRELEASED; urgency=medium
 
+  [ Mattia Rizzolo ]
   * Team upload.
   * d/control:
     + Use unversioned Conflicts in libopencv-dev, to force the removal
       of some old packages.  Closes: #880921
     + Remove dbus-x11 work around now that #878878 is fixed.
 
- -- Mattia Rizzolo <mattia@debian.org>  Sat, 11 Nov 2017 13:33:19 +0100
+  [ Nobuhiro Iwamatsu ]
+  * Update to 3.4.2.
+
+ -- Nobuhiro Iwamatsu <iwamatsu@debian.org>  Sat, 28 Jul 2018 16:48:56 +0900
 
 opencv (3.3.0+dfsg-1~exp0) experimental; urgency=medium
 
