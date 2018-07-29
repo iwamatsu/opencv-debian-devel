@@ -5,7 +5,7 @@ usr/lib/*/libopencv_ccalib.so.*
 usr/lib/*/libopencv_datasets.so.*
 # usr/lib/*/libopencv_dnn.so.*
 usr/lib/*/libopencv_dpm.so.*
-usr/lib/*/libopencv_face.so.*
+# usr/lib/*/libopencv_face.so.*
 usr/lib/*/libopencv_freetype.so.*
 usr/lib/*/libopencv_fuzzy.so.*
 usr/lib/*/libopencv_hdf.so.*
@@ -20,7 +20,7 @@ usr/lib/*/libopencv_saliency.so.*
 usr/lib/*/libopencv_stereo.so.*
 usr/lib/*/libopencv_structured_light.so.*
 usr/lib/*/libopencv_surface_matching.so.*
-usr/lib/*/libopencv_text.so.*
+# usr/lib/*/libopencv_text.so.*
 usr/lib/*/libopencv_tracking.so.*
 usr/lib/*/libopencv_ximgproc.so.*
 usr/lib/*/libopencv_xobjdetect.so.*
