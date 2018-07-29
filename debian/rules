@@ -78,6 +78,7 @@ CMAKE_FLAGS = \
 	-DWITH_CAROTENE=OFF \
 	-DBUILD_opencv_dnn=OFF \
 	-DBUILD_opencv_dnn_modern=OFF \
+	-DBUILD_opencv_face=OFF \
 	-DOPENCL_INCLUDE_DIR:PATH="/usr/include/CL/" \
 	-DOPENCV_EXTRA_MODULES_PATH="$(CURDIR)/contrib/modules" \
 	$(CMAKE_ARCH_FLAGS)
@@ -108,7 +109,6 @@ configure_static:
 	dh_auto_configure -B $(BUILDDIR)-static \
 		-- $(CMAKE_FLAGS) \
 		-DBUILD_SHARED_LIBS=OFF -DBUILD_DOCS=OFF
-
 
 override_dh_auto_build: build_dyn build_static
 build_dyn:
