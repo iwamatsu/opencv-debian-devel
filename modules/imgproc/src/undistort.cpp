@@ -98,7 +98,7 @@ public:
 #endif
     }
 
-    void operator()( const cv::Range& range ) const
+    void operator()( const cv::Range& range ) const CV_OVERRIDE
     {
         const int begin = range.start;
         const int end = range.end;
@@ -613,7 +613,6 @@ static Point2f mapPointSpherical(const Point2f& p, float alpha, Vec4d* J, int pr
         return Point2f((float)asin(x1), (float)asin(y1));
     }
     CV_Error(CV_StsBadArg, "Unknown projection type");
-    return Point2f();
 }
 
 

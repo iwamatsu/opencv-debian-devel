@@ -96,7 +96,6 @@ static bool createEncodeHuffmanTable( const int* src, unsigned* table, int max_s
     if( size > max_size )
     {
         CV_Error(CV_StsOutOfRange, "too big maximum Huffman code size");
-        return false;
     }
 
     memset( table, 0, size*sizeof(table[0]));
@@ -438,9 +437,9 @@ public:
         return true;
     }
 
-    bool isOpened() const { return container.isOpenedStream(); }
+    bool isOpened() const CV_OVERRIDE { return container.isOpenedStream(); }
 
-    void write(InputArray _img)
+    void write(InputArray _img) CV_OVERRIDE
     {
         Mat img = _img.getMat();
         size_t chunkPointer = container.getStreamPos();
@@ -493,7 +492,7 @@ public:
         }
     }
 
-    double getProperty(int propId) const
+    double getProperty(int propId) const CV_OVERRIDE
     {
         if( propId == VIDEOWRITER_PROP_QUALITY )
             return quality;
@@ -507,7 +506,7 @@ public:
         return 0.;
     }
 
-    bool setProperty(int propId, double value)
+    bool setProperty(int propId, double value) CV_OVERRIDE
     {
         if( propId == VIDEOWRITER_PROP_QUALITY )
         {
@@ -1186,7 +1185,7 @@ public:
         m_buffer_list.allocate_buffers(stripes_count, (height*width*2)/stripes_count);
     }
 
-    void operator()( const cv::Range& range ) const
+    void operator()( const cv::Range& range ) const CV_OVERRIDE
     {
         const int CAT_TAB_SIZE = 4096;
         unsigned code = 0;
@@ -1531,8 +1530,11 @@ void MotionJpegWriter::writeFrameData( const uchar* data, int step, int colorspa
 
 }
 
-Ptr<IVideoWriter> createMotionJpegWriter( const String& filename, double fps, Size frameSize, bool iscolor )
+Ptr<IVideoWriter> createMotionJpegWriter(const String& filename, int fourcc, double fps, Size frameSize, bool iscolor)
 {
+    if (fourcc != CV_FOURCC('M', 'J', 'P', 'G'))
+        return Ptr<IVideoWriter>();
+
     Ptr<IVideoWriter> iwriter = makePtr<mjpeg::MotionJpegWriter>(filename, fps, frameSize, iscolor);
     if( !iwriter->isOpened() )
         iwriter.release();

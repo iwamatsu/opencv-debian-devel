@@ -91,11 +91,7 @@ copyMask_<uchar>(const uchar* _src, size_t sstep, const uchar* mask, size_t mste
         uchar* dst = (uchar*)_dst;
         int x = 0;
         #if CV_SIMD128
-        if( hasSIMD128()
-           #if CV_SSE4_2
-           && USE_SSE4_2
-           #endif
-        ) {
+        {
             v_uint8x16 v_zero = v_setzero_u8();
 
             for( ; x <= size.width - 16; x += 16 )
@@ -104,11 +100,7 @@ copyMask_<uchar>(const uchar* _src, size_t sstep, const uchar* mask, size_t mste
                            v_dst   = v_load(dst  + x),
                            v_nmask = v_load(mask + x) == v_zero;
 
-                #if CV_SSE4_2
-                v_dst = v_uint8x16(_mm_blendv_epi8(v_src.val, v_dst.val, v_nmask.val));
-                #else
                 v_dst = v_select(v_nmask, v_dst, v_src);
-                #endif
                 v_store(dst + x, v_dst);
             }
         }
@@ -130,11 +122,7 @@ copyMask_<ushort>(const uchar* _src, size_t sstep, const uchar* mask, size_t mst
         ushort* dst = (ushort*)_dst;
         int x = 0;
         #if CV_SIMD128
-        if( hasSIMD128()
-          #if CV_SSE4_2
-          && USE_SSE4_2
-          #endif
-        ) {
+        {
             v_uint8x16 v_zero = v_setzero_u8();
 
             for( ; x <= size.width - 16; x += 16 )
@@ -146,13 +134,8 @@ copyMask_<ushort>(const uchar* _src, size_t sstep, const uchar* mask, size_t mst
                 v_uint8x16 v_nmask = v_load(mask + x) == v_zero;
                 v_zip(v_nmask, v_nmask, v_nmask1, v_nmask2);
 
-                #if CV_SSE4_2
-                v_dst1 = v_uint16x8(_mm_blendv_epi8(v_src1.val, v_dst1.val, v_nmask1.val));
-                v_dst2 = v_uint16x8(_mm_blendv_epi8(v_src2.val, v_dst2.val, v_nmask2.val));
-                #else
                 v_dst1 = v_select(v_reinterpret_as_u16(v_nmask1), v_dst1, v_src1);
                 v_dst2 = v_select(v_reinterpret_as_u16(v_nmask2), v_dst2, v_src2);
-                #endif
                 v_store(dst + x, v_dst1);
                 v_store(dst + x + 8, v_dst2);
             }
@@ -263,13 +246,14 @@ void Mat::copyTo( OutputArray _dst ) const
         return;
     }
 
+    if( empty() )
+    {
+        _dst.release();
+        return;
+    }
+
     if( _dst.isUMat() )
     {
-        if( empty() )
-        {
-            _dst.release();
-            return;
-        }
         _dst.create( dims, size.p, type() );
         UMat dst = _dst.getUMat();
         CV_Assert(dst.u != NULL);
@@ -477,6 +461,16 @@ static bool ipp_Mat_setTo_Mat(Mat &dst, Mat &_val, Mat &mask)
 
     if(dst.channels() > 4)
         return false;
+
+    if (dst.depth() == CV_32F)
+    {
+        for (int i = 0; i < (int)(_val.total()); i++)
+        {
+            float v = (float)(_val.at<double>(i));  // cast to float
+            if (cvIsNaN(v) || cvIsInf(v))  // accept finite numbers only
+                return false;
+        }
+    }
 
     if(dst.dims <= 2)
     {

@@ -124,7 +124,7 @@ public:
     //! the default constructor
     AutoBuffer();
     //! constructor taking the real buffer size
-    AutoBuffer(size_t _size);
+    explicit AutoBuffer(size_t _size);
 
     //! the copy constructor
     AutoBuffer(const AutoBuffer<_Tp, fixed_size>& buf);
@@ -246,6 +246,23 @@ compiler flags, enabled modules and third party libraries, etc. Output format de
 architecture.
  */
 CV_EXPORTS_W const String& getBuildInformation();
+
+/** @brief Returns library version string
+
+For example "3.4.1-dev".
+
+@sa getMajorVersion, getMinorVersion, getRevisionVersion
+*/
+CV_EXPORTS_W String getVersionString();
+
+/** @brief Returns major library version */
+CV_EXPORTS_W int getVersionMajor();
+
+/** @brief Returns minor library version */
+CV_EXPORTS_W int getVersionMinor();
+
+/** @brief Returns revision field of the library version */
+CV_EXPORTS_W int getVersionRevision();
 
 /** @brief Returns the number of ticks.
 
@@ -524,7 +541,7 @@ public:
         m_functor(functor)
     { }
 
-    virtual void operator() (const cv::Range& range) const
+    virtual void operator() (const cv::Range& range) const CV_OVERRIDE
     {
         m_functor(range);
     }
@@ -558,7 +575,8 @@ void Mat::forEach_impl(const Functor& operation) {
         virtual ~PixelOperationWrapper(){}
         // ! Overloaded virtual operator
         // convert range call to row call.
-        virtual void operator()(const Range &range) const {
+        virtual void operator()(const Range &range) const CV_OVERRIDE
+        {
             const int DIMS = mat->dims;
             const int COLS = mat->size[DIMS - 1];
             if (DIMS <= 2) {
@@ -711,8 +729,8 @@ public:
     inline void cleanup() { TLSDataContainer::cleanup(); }
 
 private:
-    virtual void* createDataInstance() const {return new T;}                // Wrapper to allocate data by template
-    virtual void  deleteDataInstance(void* pData) const {delete (T*)pData;} // Wrapper to release data by template
+    virtual void* createDataInstance() const CV_OVERRIDE {return new T;}                // Wrapper to allocate data by template
+    virtual void  deleteDataInstance(void* pData) const CV_OVERRIDE {delete (T*)pData;} // Wrapper to release data by template
 
     // Disable TLS copy operations
     TLSData(TLSData &) {}

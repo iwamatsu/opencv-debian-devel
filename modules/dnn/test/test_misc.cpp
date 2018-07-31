@@ -7,6 +7,8 @@
 
 #include "test_precomp.hpp"
 
+#include <opencv2/dnn/layer.details.hpp>  // CV_DNN_REGISTER_LAYER_CLASS
+
 namespace opencv_test { namespace {
 
 TEST(blobFromImage_4ch, Regression)
@@ -55,6 +57,85 @@ TEST(imagesFromBlob, Regression)
     {
         ASSERT_EQ(cv::countNonZero(inputImgs[i] != outputImgs[i]), 0);
     }
+}
+
+TEST(readNet, Regression)
+{
+    Net net = readNet(findDataFile("dnn/squeezenet_v1.1.prototxt", false),
+                      findDataFile("dnn/squeezenet_v1.1.caffemodel", false));
+    EXPECT_FALSE(net.empty());
+    net = readNet(findDataFile("dnn/opencv_face_detector.caffemodel", false),
+                  findDataFile("dnn/opencv_face_detector.prototxt", false));
+    EXPECT_FALSE(net.empty());
+    net = readNet(findDataFile("dnn/openface_nn4.small2.v1.t7", false));
+    EXPECT_FALSE(net.empty());
+    net = readNet(findDataFile("dnn/tiny-yolo-voc.cfg", false),
+                  findDataFile("dnn/tiny-yolo-voc.weights", false));
+    EXPECT_FALSE(net.empty());
+    net = readNet(findDataFile("dnn/ssd_mobilenet_v1_coco.pbtxt", false),
+                  findDataFile("dnn/ssd_mobilenet_v1_coco.pb", false));
+    EXPECT_FALSE(net.empty());
+}
+
+class FirstCustomLayer CV_FINAL : public Layer
+{
+public:
+    FirstCustomLayer(const LayerParams &params) : Layer(params) {}
+
+    static Ptr<Layer> create(LayerParams& params)
+    {
+        return Ptr<Layer>(new FirstCustomLayer(params));
+    }
+
+    virtual void forward(InputArrayOfArrays, OutputArrayOfArrays, OutputArrayOfArrays) CV_OVERRIDE {}
+    virtual void forward(std::vector<Mat*> &inputs, std::vector<Mat> &outputs, std::vector<Mat>& internals) CV_OVERRIDE
+    {
+        outputs[0].setTo(1);
+    }
+};
+
+class SecondCustomLayer CV_FINAL : public Layer
+{
+public:
+    SecondCustomLayer(const LayerParams &params) : Layer(params) {}
+
+    static Ptr<Layer> create(LayerParams& params)
+    {
+        return Ptr<Layer>(new SecondCustomLayer(params));
+    }
+
+    virtual void forward(InputArrayOfArrays, OutputArrayOfArrays, OutputArrayOfArrays) CV_OVERRIDE {}
+    virtual void forward(std::vector<Mat*> &inputs, std::vector<Mat> &outputs, std::vector<Mat>& internals) CV_OVERRIDE
+    {
+        outputs[0].setTo(2);
+    }
+};
+
+TEST(LayerFactory, custom_layers)
+{
+    LayerParams lp;
+    lp.name = "name";
+    lp.type = "CustomType";
+
+    Mat inp(1, 1, CV_32FC1);
+    for (int i = 0; i < 3; ++i)
+    {
+        if (i == 0)      { CV_DNN_REGISTER_LAYER_CLASS(CustomType, FirstCustomLayer); }
+        else if (i == 1) { CV_DNN_REGISTER_LAYER_CLASS(CustomType, SecondCustomLayer); }
+        else if (i == 2) { LayerFactory::unregisterLayer("CustomType"); }
+
+        Net net;
+        net.addLayerToPrev(lp.name, lp.type, lp);
+
+        net.setInput(inp);
+        net.setPreferableBackend(DNN_BACKEND_OPENCV);
+        Mat output = net.forward();
+
+        if (i == 0)      EXPECT_EQ(output.at<float>(0), 1);
+        else if (i == 1) EXPECT_EQ(output.at<float>(0), 2);
+        else if (i == 2) EXPECT_EQ(output.at<float>(0), 1);
+    }
+    LayerFactory::unregisterLayer("CustomType");
 }
 
 }} // namespace
