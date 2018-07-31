@@ -37,6 +37,10 @@ usr/include/opencv2/hdf/*
 usr/include/opencv2/hdf.hpp
 usr/lib/*/libopencv_hdf.a
 usr/lib/*/libopencv_hdf.so
+#hfs
+usr/include/opencv2/hfs.hpp
+usr/lib/*/libopencv_hfs.a
+usr/lib/*/libopencv_hfs.so
 # line_descriptor
 usr/include/opencv2/line_descriptor/*
 usr/include/opencv2/line_descriptor.hpp
