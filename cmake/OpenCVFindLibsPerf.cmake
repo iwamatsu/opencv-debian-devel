@@ -18,6 +18,13 @@ if(WITH_IPP)
     endif()
     ocv_include_directories(${IPP_INCLUDE_DIRS})
     list(APPEND OPENCV_LINKER_LIBS ${IPP_LIBRARIES})
+
+    # Details: #10229
+    if(ANDROID AND NOT OPENCV_SKIP_ANDROID_IPP_FIX_1)
+      set(CMAKE_SHARED_LINKER_FLAGS "-Wl,--exclude-libs,libippicv.a -Wl,--exclude-libs,libippiw.a ${CMAKE_SHARED_LINKER_FLAGS}")
+    elseif(ANDROID AND NOT OPENCV_SKIP_ANDROID_IPP_FIX_2)
+      set(CMAKE_SHARED_LINKER_FLAGS "-Wl,-Bsymbolic ${CMAKE_SHARED_LINKER_FLAGS}")
+    endif()
   endif()
 endif()
 
@@ -35,6 +42,12 @@ endif(WITH_IPP_A)
 # --- CUDA ---
 if(WITH_CUDA)
   include("${OpenCV_SOURCE_DIR}/cmake/OpenCVDetectCUDA.cmake")
+  if(NOT HAVE_CUDA)
+    message(WARNING "OpenCV is not able to find/configure CUDA SDK (required by WITH_CUDA).
+CUDA support will be disabled in OpenCV build.
+To eliminate this warning remove WITH_CUDA=ON CMake configuration option.
+")
+  endif()
 endif(WITH_CUDA)
 
 # --- Eigen ---
@@ -125,16 +138,9 @@ if(WITH_OPENMP)
   set(HAVE_OPENMP "${OPENMP_FOUND}")
 endif()
 
-if(NOT MSVC AND NOT DEFINED HAVE_PTHREADS)
-  set(_fname "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/pthread_test.cpp")
-  file(WRITE "${_fname}" "#include <pthread.h>\nint main() { (void)pthread_self(); return 0; }\n")
-  try_compile(HAVE_PTHREADS "${CMAKE_BINARY_DIR}" "${_fname}")
-  file(REMOVE "${_fname}")
-endif()
-
 ocv_clear_vars(HAVE_PTHREADS_PF)
-if(WITH_PTHREADS_PF)
-  set(HAVE_PTHREADS_PF ${HAVE_PTHREADS})
+if(WITH_PTHREADS_PF AND HAVE_PTHREAD)
+  set(HAVE_PTHREADS_PF 1)
 else()
   set(HAVE_PTHREADS_PF 0)
 endif()

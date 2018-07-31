@@ -31,7 +31,7 @@ The source code
 
 You may also find the source code and these video file in the
 `samples/cpp/tutorial_code/videoio/video-write/` folder of the OpenCV source library or [download it
-from here ](https://github.com/opencv/opencv/tree/master/samples/cpp/tutorial_code/videoio/video-write/video-write.cpp).
+from here ](https://github.com/opencv/opencv/tree/3.4/samples/cpp/tutorial_code/videoio/video-write/video-write.cpp).
 
 @include cpp/tutorial_code/videoio/video-write/video-write.cpp
 
@@ -153,8 +153,4 @@ around the idea:
 You may observe a runtime instance of this on the [YouTube
 here](https://www.youtube.com/watch?v=jpBwHxsl1_0).
 
-\htmlonly
-<div align="center">
-<iframe title="Creating a video with OpenCV" width="560" height="349" src="http://www.youtube.com/embed/jpBwHxsl1_0?rel=0&loop=1" frameborder="0" allowfullscreen align="middle"></iframe>
-</div>
-\endhtmlonly
+@youtube{jpBwHxsl1_0}
