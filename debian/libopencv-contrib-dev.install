@@ -93,15 +93,15 @@ usr/include/opencv2/datasets/*
 usr/lib/*/libopencv_datasets.a
 usr/lib/*/libopencv_datasets.so
 # text
-usr/include/opencv2/text/*
-usr/include/opencv2/text.hpp
-usr/lib/*/libopencv_text.a
-usr/lib/*/libopencv_text.so
+#usr/include/opencv2/text/*
+#usr/include/opencv2/text.hpp
+#usr/lib/*/libopencv_text.a
+#usr/lib/*/libopencv_text.so
 # face
-usr/include/opencv2/face/*
-usr/include/opencv2/face.hpp
-usr/lib/*/libopencv_face.a
-usr/lib/*/libopencv_face.so
+#usr/include/opencv2/face/*
+#usr/include/opencv2/face.hpp
+#usr/lib/*/libopencv_face.a
+#usr/lib/*/libopencv_face.so
 # freetype
 usr/include/opencv2/freetype.hpp
 usr/lib/*/libopencv_freetype.a
