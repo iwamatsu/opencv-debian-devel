@@ -9,3 +9,5 @@ usr/share/OpenCV/OpenCVConfig-version.cmake
 usr/share/OpenCV/OpenCVConfig.cmake
 usr/share/OpenCV/OpenCVModules-release.cmake
 usr/share/OpenCV/OpenCVModules.cmake
+# other license file
+usr/share/OpenCV/licenses/SoftFloat-COPYING.txt
