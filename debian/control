@@ -8,7 +8,7 @@ Uploaders:
 Build-Depends:
  ant,
  cmake (>= 2.8.7),
- debhelper (>= 10),
+ debhelper (>= 11),
  default-jdk,
  dh-python,
  doxygen,
