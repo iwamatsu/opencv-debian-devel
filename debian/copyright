@@ -6,8 +6,10 @@ Files-Excluded:
  doc/tutorials/introduction/biicode/images/bii_lena.png
  doc/tutorials/introduction/clojure_dev_intro/images/lena.png
  doc/tutorials/introduction/desktop_java/images/lena.png
+ doc/js_tutorials/js_assets/lena.jpg
  modules/highgui/src/files_Qt/Milky
  modules/java/common_test/res/drawable/lena.png
+ modules/java/test/common_test/res/drawable/lena.png
  samples/data/lena.jpg
  samples/data/lena_tmpl.jpg
  samples/java/clojure/simple-sample/resources
